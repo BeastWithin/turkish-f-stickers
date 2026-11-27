@@ -1,0 +1,251 @@
+import runpy, json, os
+HERE = os.path.dirname(os.path.abspath(__file__))
+
+g = runpy.run_path(os.path.join(HERE, 'generate_sheet.py'))
+rows, keys = g['rows'], g['keys']
+data = [[{'id': k, 'l': (keys.get(k, []) + ['', '', '', ''])[:4]} for k in row] for row in rows]
+payload = json.dumps(data, ensure_ascii=False).replace('</', '<\\/')
+
+TEMPLATE = r'''<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Turkish F sticker configurator</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font:14px system-ui,sans-serif;background:#eceef1;color:#222;display:flex;height:100vh;overflow:hidden}
+#controls{width:340px;overflow:auto;background:#fff;padding:16px;border-right:1px solid #ccc}
+#controls h2{font-size:16px;margin:0 0 6px}
+#controls h4{margin:14px 0 6px;font-size:11px;text-transform:uppercase;color:#666;letter-spacing:.05em}
+.row{display:flex;justify-content:space-between;align-items:center;margin:5px 0;gap:8px}
+.row label{flex:1}
+.row input[type=number]{width:84px}
+.row input[type=text]{width:170px}
+.row input[type=color]{width:60px;height:26px;padding:0;border:1px solid #bbb;background:none}
+#main{flex:1;display:flex;flex-direction:column;min-width:0}
+#bar{padding:10px 14px;background:#fff;border-bottom:1px solid #ccc;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+#preview{flex:1;overflow:auto;padding:20px}
+#sheetwrap{background:#fff;width:fit-content;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+#sheet{position:relative;width:210mm;height:297mm;background:#fff}
+.title{position:absolute;left:0;right:0;top:12mm;text-align:center;font:9pt sans-serif;color:#555}
+.k{position:absolute;box-sizing:border-box;width:var(--s);height:var(--s);border-radius:var(--r);font-family:var(--fam);outline:var(--ol);color:#000;cursor:pointer}
+.k.sel{outline:0.6mm solid #e0457b !important}
+.k span{position:absolute;line-height:1;white-space:nowrap;pointer-events:none}
+.k .base{left:0;right:0;text-align:center;bottom:var(--bb);font-size:var(--bf)}
+.k .sh{left:var(--ci);top:var(--ct);font-size:var(--cf)}
+.k .ag2{right:var(--ci);top:var(--ct);font-size:var(--cf)}
+.k .ag{right:var(--ci);bottom:var(--ct);font-size:var(--cf)}
+#keypanel{border-top:1px solid #ddd;margin-top:6px;padding-top:4px}
+.hint{color:#666;font-size:12px;margin:4px 0}
+button{padding:6px 10px;cursor:pointer;margin-right:6px;margin-top:6px}
+@page{size:A4;margin:0}
+@media print{
+  body{display:block;height:auto;background:#fff;overflow:visible}
+  #controls,#bar,.hint{display:none !important}
+  #main{display:block}
+  #preview{overflow:visible;padding:0}
+  #sheetwrap{box-shadow:none;width:auto}
+  #sheet{zoom:1 !important}
+  .k.sel{outline:var(--ol) !important}
+}
+</style></head><body>
+<div id="controls">
+  <h2>Turkish F sticker configurator</h2>
+  <div class="hint">Settings are saved in this browser automatically. All sizes are in mm.</div>
+  <div id="spec"></div>
+  <h4>Selected key</h4>
+  <div id="keypanel"></div>
+  <h4>Reset</h4>
+  <button id="resetKeys">Reset all key colors</button>
+  <button id="resetAll">Reset all settings</button>
+</div>
+<div id="main">
+  <div id="bar">
+    <button id="print">Print / Save as PDF</button>
+    <label>Preview zoom <input type="range" id="zoom" min="0.5" max="2" step="0.05" value="1"></label>
+    <span class="hint">Click a sticker to change its colors. Print at 100% scale, A4, no margins.</span>
+  </div>
+  <div id="preview"><div id="sheetwrap"><div id="sheet"></div></div></div>
+</div>
+<script>
+const DATA = __DATA__;
+const KEY = 'turkishFStickerConfig';
+const LEVELS = ['base', 'shift', 'altgr', 'altgrshift'];
+const LNAME = {base: 'Main character', shift: 'Shift', altgr: 'AltGr', altgrshift: 'AltGr+Shift'};
+const DEFAULTS = {
+  top: 30, pitch: 11.5, size: 10, radius: 1.5,
+  outline: true, outlineColor: '#9a9a9a', bg: '#ffffff',
+  baseSize: 5.0, baseBottom: 0.6, cornerSize: 2.6, cornerInset: 0.9,
+  fontFamily: '"DejaVu Sans","Liberation Sans",Arial,sans-serif',
+  nbsp: '⍽', showTitle: true,
+  colors: {base: '#000000', shift: '#000000', altgr: '#000000', altgrshift: '#000000'}
+};
+const SPEC = [
+  {group: 'Sheet', items: [
+    {k: 'top', label: 'Top margin', t: 'num', step: 0.5},
+    {k: 'pitch', label: 'Spacing between stickers', t: 'num', step: 0.1},
+    {k: 'showTitle', label: 'Print title line', t: 'bool'}
+  ]},
+  {group: 'Sticker', items: [
+    {k: 'size', label: 'Sticker size', t: 'num', step: 0.1},
+    {k: 'radius', label: 'Corner radius', t: 'num', step: 0.1},
+    {k: 'bg', label: 'Background', t: 'color'},
+    {k: 'outline', label: 'Show cut line', t: 'bool'},
+    {k: 'outlineColor', label: 'Cut line color', t: 'color'}
+  ]},
+  {group: 'Text size and position', items: [
+    {k: 'baseSize', label: 'Main character size', t: 'num', step: 0.1},
+    {k: 'baseBottom', label: 'Main character from bottom', t: 'num', step: 0.1},
+    {k: 'cornerSize', label: 'Corner label size', t: 'num', step: 0.1},
+    {k: 'cornerInset', label: 'Corner label inset', t: 'num', step: 0.1},
+    {k: 'fontFamily', label: 'Font (CSS)', t: 'text'}
+  ]},
+  {group: 'Default colors per level', items: [
+    {k: 'c_base', label: 'Main character', t: 'color'},
+    {k: 'c_shift', label: 'Shift', t: 'color'},
+    {k: 'c_altgr', label: 'AltGr', t: 'color'},
+    {k: 'c_altgrshift', label: 'AltGr+Shift', t: 'color'}
+  ]},
+  {group: 'Labels', items: [
+    {k: 'nbsp', label: 'Label on non-breaking space key', t: 'text'}
+  ]}
+];
+
+let S = clone(DEFAULTS), overrides = {}, selected = null;
+const KEYMAP = {};
+DATA.forEach((row, r) => row.forEach((k, i) => { k.r = r; k.c = i; KEYMAP[k.id] = k; }));
+
+function clone(o) { return JSON.parse(JSON.stringify(o)); }
+function get(k) { return k.startsWith('c_') ? S.colors[k.slice(2)] : S[k]; }
+function set(k, v) { if (k.startsWith('c_')) S.colors[k.slice(2)] = v; else S[k] = v; }
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c])); }
+function save() { localStorage.setItem(KEY, JSON.stringify({S, overrides})); }
+function load() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(KEY) || 'null');
+    if (saved && saved.S) {
+      S = Object.assign(clone(DEFAULTS), saved.S);
+      S.colors = Object.assign(clone(DEFAULTS.colors), saved.S.colors || {});
+      overrides = saved.overrides || {};
+    }
+  } catch (e) { /* ignore broken saved data */ }
+}
+
+function buildSpec() {
+  const host = document.getElementById('spec');
+  host.innerHTML = '';
+  SPEC.forEach(g => {
+    const h = document.createElement('h4'); h.textContent = g.group; host.appendChild(h);
+    g.items.forEach(it => {
+      const row = document.createElement('div'); row.className = 'row';
+      const lab = document.createElement('label'); lab.textContent = it.label;
+      const inp = document.createElement('input');
+      inp.type = it.t === 'num' ? 'number' : (it.t === 'bool' ? 'checkbox' : it.t);
+      if (it.step) inp.step = it.step;
+      const v = get(it.k);
+      if (it.t === 'bool') inp.checked = !!v; else inp.value = v;
+      inp.addEventListener('input', () => {
+        if (it.t === 'bool') set(it.k, inp.checked);
+        else if (it.t === 'num') { const n = parseFloat(inp.value); if (!isNaN(n)) set(it.k, n); else return; }
+        else set(it.k, inp.value);
+        render();
+      });
+      row.append(lab, inp); host.appendChild(row);
+    });
+  });
+}
+
+function col(ov, level) { return ov[level] || S.colors[level]; }
+
+function makeSticker(k, x, y) {
+  const ov = overrides[k.id] || {};
+  const lab = k.l.slice();
+  if (k.id === 'AB08') lab[3] = S.nbsp;   // non-breaking space key (B, AltGr+Shift)
+  const el = document.createElement('div');
+  el.className = 'k' + (selected === k.id ? ' sel' : '');
+  el.dataset.id = k.id;
+  el.style.left = x.toFixed(2) + 'mm';
+  el.style.top = y.toFixed(2) + 'mm';
+  el.style.background = ov.bg || S.bg;
+  el.innerHTML =
+    '<span class="sh" style="color:' + col(ov, 'shift') + '">' + esc(lab[1]) + '</span>' +
+    '<span class="ag2" style="color:' + col(ov, 'altgrshift') + '">' + esc(lab[3]) + '</span>' +
+    '<span class="base" style="color:' + col(ov, 'base') + '">' + esc(lab[0]) + '</span>' +
+    '<span class="ag" style="color:' + col(ov, 'altgr') + '">' + esc(lab[2]) + '</span>';
+  return el;
+}
+
+function stickerPos(k) { return [(210 - 13 * S.pitch) / 2 + k.c * S.pitch, S.top + k.r * S.pitch]; }
+
+function render() {
+  const sh = document.getElementById('sheet');
+  sh.style.setProperty('--s', S.size + 'mm');
+  sh.style.setProperty('--r', S.radius + 'mm');
+  sh.style.setProperty('--bf', S.baseSize + 'mm');
+  sh.style.setProperty('--bb', S.baseBottom + 'mm');
+  sh.style.setProperty('--cf', S.cornerSize + 'mm');
+  sh.style.setProperty('--ci', S.cornerInset + 'mm');
+  sh.style.setProperty('--ct', S.cornerInset + 'mm');
+  sh.style.setProperty('--fam', S.fontFamily);
+  sh.style.setProperty('--ol', S.outline ? '0.12mm dashed ' + S.outlineColor : 'none');
+  sh.innerHTML = '';
+  if (S.showTitle) {
+    const t = document.createElement('div'); t.className = 'title';
+    t.textContent = 'Turkish F keycap stickers · cut along the dashed lines · print at 100% (actual size)';
+    sh.appendChild(t);
+  }
+  DATA.forEach(row => row.forEach(k => { const [x, y] = stickerPos(k); sh.appendChild(makeSticker(k, x, y)); }));
+  renderPanel();
+  save();
+}
+
+function updateSticker(id) {
+  const k = KEYMAP[id];
+  const [x, y] = stickerPos(k);
+  document.querySelector('.k[data-id="' + id + '"]').replaceWith(makeSticker(k, x, y));
+  save();
+}
+
+function colorRow(box, label, value, onInput) {
+  const row = document.createElement('div'); row.className = 'row';
+  const lab = document.createElement('label'); lab.textContent = label;
+  const inp = document.createElement('input'); inp.type = 'color'; inp.value = value;
+  inp.addEventListener('input', () => onInput(inp.value));
+  row.append(lab, inp); box.appendChild(row);
+}
+
+function renderPanel() {
+  const box = document.getElementById('keypanel');
+  box.innerHTML = '';
+  if (!selected) { box.innerHTML = '<p class="hint">Click a sticker in the preview to change its colors.</p>'; return; }
+  const k = KEYMAP[selected];
+  const ov = overrides[selected] || {};
+  const p = document.createElement('p'); p.className = 'hint';
+  const labs = k.l.map((x, i) => (k.id === 'AB08' && i === 3) ? S.nbsp : x);
+  p.textContent = 'Key ' + k.id + ': ' + labs.map(x => x || '-').join('  |  ');
+  box.appendChild(p);
+  colorRow(box, 'Background', ov.bg || S.bg, v => { overrides[selected] = Object.assign({}, overrides[selected], {bg: v}); updateSticker(selected); });
+  LEVELS.forEach(l => colorRow(box, LNAME[l], col(ov, l), v => { overrides[selected] = Object.assign({}, overrides[selected], {[l]: v}); updateSticker(selected); }));
+  const b = document.createElement('button'); b.textContent = 'Reset this key';
+  b.addEventListener('click', () => { delete overrides[selected]; updateSticker(selected); renderPanel(); });
+  box.appendChild(b);
+}
+
+document.getElementById('sheet').addEventListener('click', e => {
+  const el = e.target.closest('.k');
+  if (!el) return;
+  selected = el.dataset.id;
+  document.querySelectorAll('.k.sel').forEach(x => x.classList.remove('sel'));
+  el.classList.add('sel');
+  renderPanel();
+});
+document.getElementById('resetKeys').addEventListener('click', () => { overrides = {}; render(); });
+document.getElementById('resetAll').addEventListener('click', () => { S = clone(DEFAULTS); overrides = {}; buildSpec(); render(); });
+document.getElementById('print').addEventListener('click', () => window.print());
+document.getElementById('zoom').addEventListener('input', e => { document.getElementById('sheet').style.zoom = e.target.value; });
+
+load();
+buildSpec();
+render();
+</script></body></html>
+'''
+
+open(os.path.join(HERE, 'configurator.html'), 'w').write(TEMPLATE.replace('__DATA__', payload))
+print('configurator written')
