@@ -20,7 +20,7 @@ body{margin:0;font:14px system-ui,sans-serif;background:#eceef1;color:#222;displ
 .k{position:absolute;box-sizing:border-box;width:var(--s);height:var(--s);border-radius:var(--r);font-family:var(--fam);outline:var(--ol);color:#000;cursor:pointer}
 .k.sel{outline:0.6mm solid #e0457b !important}
 .k span{position:absolute;line-height:1;white-space:nowrap;pointer-events:none}
-.k .base{left:0;right:0;text-align:center;bottom:var(--bb);font-size:var(--bf)}
+.k .base{left:var(--bl);right:0;text-align:var(--ba);bottom:var(--bb);font-size:var(--bf)}
 .k .sh{left:var(--ci);top:var(--ct);font-size:var(--cf)}
 .k .ag2{right:var(--ci);top:var(--ct);font-size:var(--cf)}
 .k .ag{right:var(--ci);bottom:var(--ct);font-size:var(--cf)}
@@ -64,7 +64,7 @@ const LNAME = {base: 'Main character', shift: 'Shift', altgr: 'AltGr', altgrshif
 const DEFAULTS = {
   top: 30, pitch: 11.5, size: 10, radius: 1.5,
   outline: true, outlineColor: '#9a9a9a', bg: '#ffffff',
-  baseSize: 5.0, baseBottom: 0.6, cornerSize: 2.6, cornerInset: 0.9,
+  baseSize: 5.0, baseBottom: 0.6, baseAlign: 'center', cornerSize: 2.6, cornerInset: 0.9,
   fontFamily: '"DejaVu Sans","Liberation Sans",Arial,sans-serif',
   nbsp: '⍽', showTitle: true,
   colors: {base: '#000000', shift: '#000000', altgr: '#000000', altgrshift: '#000000'}
@@ -85,6 +85,7 @@ const SPEC = [
   {group: 'Text size and position', items: [
     {k: 'baseSize', label: 'Main character size', t: 'num', step: 0.1},
     {k: 'baseBottom', label: 'Main character from bottom', t: 'num', step: 0.1},
+    {k: 'baseAlign', label: 'Main character position', t: 'select', options: [['center', 'Center'], ['left', 'Left']]},
     {k: 'cornerSize', label: 'Corner label size', t: 'num', step: 0.1},
     {k: 'cornerInset', label: 'Corner label inset', t: 'num', step: 0.1},
     {k: 'fontFamily', label: 'Font (CSS)', t: 'text'}
@@ -128,9 +129,15 @@ function buildSpec() {
     g.items.forEach(it => {
       const row = document.createElement('div'); row.className = 'row';
       const lab = document.createElement('label'); lab.textContent = it.label;
-      const inp = document.createElement('input');
-      inp.type = it.t === 'num' ? 'number' : (it.t === 'bool' ? 'checkbox' : it.t);
-      if (it.step) inp.step = it.step;
+      let inp;
+      if (it.t === 'select') {
+        inp = document.createElement('select');
+        it.options.forEach(([val, txt]) => { const o = document.createElement('option'); o.value = val; o.textContent = txt; inp.appendChild(o); });
+      } else {
+        inp = document.createElement('input');
+        inp.type = it.t === 'num' ? 'number' : (it.t === 'bool' ? 'checkbox' : it.t);
+        if (it.step) inp.step = it.step;
+      }
       const v = get(it.k);
       if (it.t === 'bool') inp.checked = !!v; else inp.value = v;
       inp.addEventListener('input', () => {
@@ -172,6 +179,8 @@ function render() {
   sh.style.setProperty('--r', S.radius + 'mm');
   sh.style.setProperty('--bf', S.baseSize + 'mm');
   sh.style.setProperty('--bb', S.baseBottom + 'mm');
+  sh.style.setProperty('--bl', S.baseAlign === 'left' ? S.cornerInset + 'mm' : '0mm');
+  sh.style.setProperty('--ba', S.baseAlign === 'left' ? 'left' : 'center');
   sh.style.setProperty('--cf', S.cornerSize + 'mm');
   sh.style.setProperty('--ci', S.cornerInset + 'mm');
   sh.style.setProperty('--ct', S.cornerInset + 'mm');
