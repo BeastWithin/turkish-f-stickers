@@ -13,13 +13,13 @@ Etiketlerde her tuş için dört karakter yer alır:
 
 | Dosya | Açıklama |
 |---|---|
-| `configurator.html` | Etiket düzenleyici. Tarayıcıda açın, ayarları yapın ve yazdırın |
-| `generate_configurator.py` | `configurator.html` dosyasını üreten betik |
+| `index.html` | Etiket düzenleyici. Tarayıcıda açın, ayarları yapın ve yazdırın |
+| `generate_configurator.py` | `index.html` dosyasını üreten betik |
 | `generate_sheet.py` | Tuş düzenini X11 klavye tanımından okuyan betik |
 
 ## Kullanım
 
-1. `configurator.html` dosyasını tarayıcıda açın.
+1. `index.html` dosyasını tarayıcıda açın.
 2. Etiket boyutunu kontrol edin. Varsayılan 10 mm kare etiketler, dizüstü klavye tuşlarının düz üst yüzeyine (yaklaşık 1 cm × 1 cm) uyacak şekilde ayarlanmıştır. Masaüstü klavye için de bu boyut uygundur.
 3. İsterseniz yazı boyutunu, rengini veya kesim çizgisini değiştirin. Tek tek tuşlara tıklayarak yalnızca o tuşun renklerini de değiştirebilirsiniz.
 4. **Print / Save as PDF** düğmesine basın. Yazdırma ayarlarında **gerçek boyut / %100** seçin, ölçekleme ve kenar boşluğu kapalı olsun.
@@ -39,7 +39,7 @@ Ayarlarınız tarayıcıda otomatik olarak saklanır.
 Gereksinimler: Python 3.
 
 ```sh
-python3 generate_configurator.py   # configurator.html dosyasını üretir
+python3 generate_configurator.py   # index.html dosyasını üretir
 ```
 
 Klavye tanımı farklı bir yerdeyse `XKB_TR` ortam değişkeniyle yolunu belirtebilirsiniz.

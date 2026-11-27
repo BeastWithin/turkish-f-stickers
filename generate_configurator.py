@@ -247,5 +247,5 @@ render();
 </script></body></html>
 '''
 
-open(os.path.join(HERE, 'configurator.html'), 'w').write(TEMPLATE.replace('__DATA__', payload))
+open(os.path.join(HERE, 'index.html'), 'w').write(TEMPLATE.replace('__DATA__', payload))
 print('configurator written')
