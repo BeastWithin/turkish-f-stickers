@@ -7,7 +7,7 @@ data = [[{'id': k, 'l': (keys.get(k, []) + ['', '', '', ''])[:4]} for k in row] 
 payload = json.dumps(data, ensure_ascii=False).replace('</', '<\\/')
 
 TEMPLATE = r'''<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><title>Turkish F sticker configurator</title>
+<html lang="en"><head><meta charset="utf-8"><title>Türkçe F Etiket Düzenleyici</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;font:14px system-ui,sans-serif;background:#eceef1;color:#222;display:flex;height:100vh;overflow:hidden}
@@ -47,20 +47,20 @@ button{padding:6px 10px;cursor:pointer;margin-right:6px;margin-top:6px}
 }
 </style></head><body>
 <div id="controls">
-  <h2>Turkish F sticker configurator</h2>
-  <div class="hint">Settings are saved in this browser automatically. All sizes are in mm.</div>
+  <h2>Türkçe F Etiket Düzenleyici</h2>
+  <div class="hint">Ayarlar bu tarayıcıda otomatik kaydedilir. Tüm ölçüler milimetredir.</div>
   <div id="spec"></div>
-  <h4>Selected key</h4>
+  <h4>Seçili tuş</h4>
   <div id="keypanel"></div>
-  <h4>Reset</h4>
-  <button id="resetKeys">Reset all key colors</button>
-  <button id="resetAll">Reset all settings</button>
+  <h4>Sıfırla</h4>
+  <button id="resetKeys">Tüm tuş renklerini sıfırla</button>
+  <button id="resetAll">Tüm ayarları sıfırla</button>
 </div>
 <div id="main">
   <div id="bar">
-    <button id="print">Print / Save as PDF</button>
-    <label>Preview zoom <input type="range" id="zoom" min="0.5" max="2" step="0.05" value="1"></label>
-    <span class="hint">Click a sticker to change its colors. Print at 100% scale, A4, no margins.</span>
+    <button id="print">Yazdır / PDF olarak kaydet</button>
+    <label>Önizleme yakınlığı <input type="range" id="zoom" min="0.5" max="2" step="0.05" value="1"></label>
+    <span class="hint">Renkleri değiştirmek için bir etikete tıklayın. %100 ölçekte, A4, kenar boşluksuz yazdırın.</span>
   </div>
   <div id="preview"><div id="sheetwrap"><div id="sheet"></div></div></div>
 </div>
@@ -68,7 +68,7 @@ button{padding:6px 10px;cursor:pointer;margin-right:6px;margin-top:6px}
 const DATA = __DATA__;
 const KEY = 'turkishFStickerConfig';
 const LEVELS = ['base', 'shift', 'altgr', 'altgrshift'];
-const LNAME = {base: 'Main character', shift: 'Shift', altgr: 'AltGr', altgrshift: 'AltGr+Shift'};
+const LNAME = {base: 'Ana karakter', shift: 'Shift', altgr: 'AltGr', altgrshift: 'AltGr+Shift'};
 const DEFAULTS = {
   top: 30, pitch: 11.5, size: 10, radius: 1.5,
   outline: true, outlineColor: '#9a9a9a', bg: '#ffffff',
@@ -78,34 +78,34 @@ const DEFAULTS = {
   colors: {base: '#000000', shift: '#000000', altgr: '#000000', altgrshift: '#000000'}
 };
 const SPEC = [
-  {group: 'Sheet', items: [
-    {k: 'top', label: 'Top margin', t: 'num', step: 0.5},
-    {k: 'pitch', label: 'Spacing between stickers', t: 'num', step: 0.1},
-    {k: 'showTitle', label: 'Print title line', t: 'bool'}
+  {group: 'Sayfa', items: [
+    {k: 'top', label: 'Üst boşluk', t: 'num', step: 0.5},
+    {k: 'pitch', label: 'Etiketler arası boşluk', t: 'num', step: 0.1},
+    {k: 'showTitle', label: 'Başlık satırını yazdır', t: 'bool'}
   ]},
-  {group: 'Sticker', items: [
-    {k: 'size', label: 'Sticker size', t: 'num', step: 0.1},
-    {k: 'radius', label: 'Corner radius', t: 'num', step: 0.1},
-    {k: 'bg', label: 'Background', t: 'color'},
-    {k: 'outline', label: 'Show cut line', t: 'bool'},
-    {k: 'outlineColor', label: 'Cut line color', t: 'color'}
+  {group: 'Etiket', items: [
+    {k: 'size', label: 'Etiket boyutu', t: 'num', step: 0.1},
+    {k: 'radius', label: 'Köşe yuvarlaklığı', t: 'num', step: 0.1},
+    {k: 'bg', label: 'Arka plan', t: 'color'},
+    {k: 'outline', label: 'Kesim çizgisini göster', t: 'bool'},
+    {k: 'outlineColor', label: 'Kesim çizgisi rengi', t: 'color'}
   ]},
-  {group: 'Text size and position', items: [
-    {k: 'baseSize', label: 'Main character size', t: 'num', step: 0.1},
-    {k: 'baseBottom', label: 'Main character from bottom', t: 'num', step: 0.1},
-    {k: 'baseAlign', label: 'Main character position', t: 'select', options: [['center', 'Center'], ['left', 'Left']]},
-    {k: 'cornerSize', label: 'Corner label size', t: 'num', step: 0.1},
-    {k: 'cornerInset', label: 'Corner label inset', t: 'num', step: 0.1},
-    {k: 'fontFamily', label: 'Font (CSS)', t: 'text'}
+  {group: 'Yazı boyutu ve konumu', items: [
+    {k: 'baseSize', label: 'Ana karakter boyutu', t: 'num', step: 0.1},
+    {k: 'baseBottom', label: 'Ana karakterin alttan uzaklığı', t: 'num', step: 0.1},
+    {k: 'baseAlign', label: 'Ana karakter konumu', t: 'select', options: [['center', 'Ortada'], ['left', 'Solda']]},
+    {k: 'cornerSize', label: 'Köşe etiketi boyutu', t: 'num', step: 0.1},
+    {k: 'cornerInset', label: 'Köşe etiketi kenar boşluğu', t: 'num', step: 0.1},
+    {k: 'fontFamily', label: 'Yazı tipi (CSS)', t: 'text'}
   ]},
-  {group: 'Default colors per level', items: [
-    {k: 'c_base', label: 'Main character', t: 'color'},
+  {group: 'Seviyeye göre varsayılan renkler', items: [
+    {k: 'c_base', label: 'Ana karakter', t: 'color'},
     {k: 'c_shift', label: 'Shift', t: 'color'},
     {k: 'c_altgr', label: 'AltGr', t: 'color'},
     {k: 'c_altgrshift', label: 'AltGr+Shift', t: 'color'}
   ]},
-  {group: 'Labels', items: [
-    {k: 'nbsp', label: 'Label on non-breaking space key', t: 'text'}
+  {group: 'Etiket metinleri', items: [
+    {k: 'nbsp', label: 'Kesmez boşluk tuşunun etiketi', t: 'text'}
   ]}
 ];
 
@@ -197,7 +197,7 @@ function render() {
   sh.innerHTML = '';
   if (S.showTitle) {
     const t = document.createElement('div'); t.className = 'title';
-    t.textContent = 'Turkish F keycap stickers · cut along the dashed lines · print at 100% (actual size)';
+    t.textContent = 'Türkçe F tuş etiketleri · kesikli çizgilerden kesin · %100 boyutunda yazdırın';
     sh.appendChild(t);
   }
   DATA.forEach(row => row.forEach(k => { const [x, y] = stickerPos(k); sh.appendChild(makeSticker(k, x, y)); }));
@@ -223,16 +223,16 @@ function colorRow(box, label, value, onInput) {
 function renderPanel() {
   const box = document.getElementById('keypanel');
   box.innerHTML = '';
-  if (!selected) { box.innerHTML = '<p class="hint">Click a sticker in the preview to change its colors.</p>'; return; }
+  if (!selected) { box.innerHTML = '<p class="hint">Renkleri değiştirmek için önizlemeden bir etikete tıklayın.</p>'; return; }
   const k = KEYMAP[selected];
   const ov = overrides[selected] || {};
   const p = document.createElement('p'); p.className = 'hint';
   const labs = k.l.map((x, i) => (k.id === 'AB08' && i === 3) ? S.nbsp : x);
-  p.textContent = 'Key ' + k.id + ': ' + labs.map(x => x || '-').join('  |  ');
+  p.textContent = 'Tuş ' + k.id + ': ' + labs.map(x => x || '-').join('  |  ');
   box.appendChild(p);
-  colorRow(box, 'Background', ov.bg || S.bg, v => { overrides[selected] = Object.assign({}, overrides[selected], {bg: v}); updateSticker(selected); });
+  colorRow(box, 'Arka plan', ov.bg || S.bg, v => { overrides[selected] = Object.assign({}, overrides[selected], {bg: v}); updateSticker(selected); });
   LEVELS.forEach(l => colorRow(box, LNAME[l], col(ov, l), v => { overrides[selected] = Object.assign({}, overrides[selected], {[l]: v}); updateSticker(selected); }));
-  const b = document.createElement('button'); b.textContent = 'Reset this key';
+  const b = document.createElement('button'); b.textContent = 'Bu tuşu sıfırla';
   b.addEventListener('click', () => { delete overrides[selected]; updateSticker(selected); renderPanel(); });
   box.appendChild(b);
 }

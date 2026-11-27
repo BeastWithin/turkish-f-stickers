@@ -22,7 +22,7 @@ Etiketlerde her tuş için dört karakter yer alır:
 1. `index.html` dosyasını tarayıcıda açın.
 2. Etiket boyutunu kontrol edin. Varsayılan 10 mm kare etiketler, dizüstü klavye tuşlarının düz üst yüzeyine (yaklaşık 1 cm × 1 cm) uyacak şekilde ayarlanmıştır. Masaüstü klavye için de bu boyut uygundur.
 3. İsterseniz yazı boyutunu, rengini veya kesim çizgisini değiştirin. Tek tek tuşlara tıklayarak yalnızca o tuşun renklerini de değiştirebilirsiniz.
-4. **Print / Save as PDF** düğmesine basın. Yazdırma ayarlarında **gerçek boyut / %100** seçin, ölçekleme ve kenar boşluğu kapalı olsun.
+4. **Yazdır / PDF olarak kaydet** düğmesine basın. Yazdırma ayarlarında **gerçek boyut / %100** seçin, ölçekleme ve kenar boşluğu kapalı olsun.
 5. Etiketleri yapışkan etiket kağıdına (beyaz veya şeffaf) yazdırın ve dikkatlice kesin. Kesim çizgileri kesikli çizgilerle gösterilir.
 6. Etiketleri tuş kapaklarının düz üst yüzeyine yapıştırın.
 
